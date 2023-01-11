@@ -15,14 +15,30 @@ import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy;
 public class LogUtils {
 
     public static void init(String folderPath) {
+        init(folderPath, false, false, false);
+    }
+
+    public static void init(String folderPath, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
         if (folderPath == null || folderPath.length() == 0) {
             folderPath = "/mf/log/tmp/";
         }
-        LogConfiguration config = new LogConfiguration.Builder()
-                .disableThreadInfo()
-                .disableBorder()
-                .disableStackTrace()
-                .build();
+        LogConfiguration.Builder builder = new LogConfiguration.Builder();
+        if (enableThreadInfo) {
+            builder.enableThreadInfo();
+        } else {
+            builder.disableThreadInfo();
+        }
+        if (enableBorder) {
+            builder.enableBorder();
+        } else {
+            builder.disableBorder();
+        }
+        if (enableStackTrace) {
+            builder.enableStackTrace(3);
+        } else {
+            builder.disableStackTrace();
+        }
+        LogConfiguration config = builder.build();
         Printer androidPrinter = new AndroidPrinter(true);
         Printer filePrinter = new FilePrinter
                 .Builder(Environment.getExternalStorageDirectory().getPath() + folderPath)
