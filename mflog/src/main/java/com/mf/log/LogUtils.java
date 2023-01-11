@@ -4,7 +4,7 @@ import android.os.Environment;
 
 import com.elvishew.xlog.LogConfiguration;
 import com.elvishew.xlog.XLog;
-import com.elvishew.xlog.flattener.DefaultFlattener;
+import com.elvishew.xlog.flattener.ClassicFlattener;
 import com.elvishew.xlog.printer.AndroidPrinter;
 import com.elvishew.xlog.printer.Printer;
 import com.elvishew.xlog.printer.file.FilePrinter;
@@ -29,7 +29,7 @@ public class LogUtils {
                 .fileNameGenerator(new LevelAndDateFileNameGenerator())
                 .backupStrategy(new FileSizeBackupStrategy2(5 * 1024 * 1024/*5MB*/, 1000))
                 .cleanStrategy(new FileLastModifiedCleanStrategy(5 * 24 * 60 * 60 * 1000/*5天*/))
-                .flattener(new DefaultFlattener())
+                .flattener(new ClassicFlattener())
                 .build();
         init(config, androidPrinter, filePrinter);
     }

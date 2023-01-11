@@ -16,7 +16,7 @@ public class LevelAndDateFileNameGenerator implements FileNameGenerator {
 
         @Override
         protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd HH", Locale.CHINA);
+            return new SimpleDateFormat("yyyy-MM-dd_HH", Locale.CHINA);
         }
     };
 
