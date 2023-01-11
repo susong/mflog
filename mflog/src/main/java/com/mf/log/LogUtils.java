@@ -16,10 +16,10 @@ public class LogUtils {
 
     public static void init(String folderPath) {
         if (folderPath == null || folderPath.length() == 0) {
-            folderPath = "/mf/log/log/";
+            folderPath = "/mf/log/tmp/";
         }
         LogConfiguration config = new LogConfiguration.Builder()
-                .enableThreadInfo()
+                .disableThreadInfo()
                 .disableBorder()
                 .disableStackTrace()
                 .build();
@@ -31,8 +31,11 @@ public class LogUtils {
                 .cleanStrategy(new FileLastModifiedCleanStrategy(5 * 24 * 60 * 60 * 1000/*5天*/))
                 .flattener(new DefaultFlattener())
                 .build();
+        init(config, androidPrinter, filePrinter);
+    }
 
-        XLog.init(config, androidPrinter, filePrinter);
+    public static void init(LogConfiguration logConfiguration, Printer... printers) {
+        XLog.init(logConfiguration, printers);
     }
 
     public static void v(String tag, String msg) {
