@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<Button>(R.id.btn_log_i).setOnClickListener(this)
         findViewById<Button>(R.id.btn_log_w).setOnClickListener(this)
         findViewById<Button>(R.id.btn_log_e).setOnClickListener(this)
-        LogUtils.init("/mf/log/android/")
+        LogUtils.init("/mf/log/android/", true, false, true)
         requestPermissions()
     }
 
