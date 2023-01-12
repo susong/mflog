@@ -41,4 +41,32 @@
         android:text="Log.e"
         android:textAllCaps="false" />
 
+    <Button
+        android:id="@+id/btn_log_alot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Log.alot"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_log_test_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="持续输出日志开始"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_log_test_end"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="持续输出日志结束"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_backup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="手动备份"
+        android:textAllCaps="false" />
+
 </LinearLayout>

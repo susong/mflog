@@ -10,7 +10,7 @@ import java.util.TimeZone;
 
 public class LevelAndDateFileNameGenerator implements FileNameGenerator {
 
-    final String fileName = "%s_%s";
+    final String fileName = "%s_%s.log";
 
     ThreadLocal<SimpleDateFormat> mLocalDateFormat = new ThreadLocal<SimpleDateFormat>() {
 
