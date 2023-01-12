@@ -10,7 +10,6 @@ import com.mf.log.LogUtils;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -18,25 +17,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @data: 2016/11/25 18:13
  * @version: V1.0
  */
-public class TimerHandler {
+public enum TimerHandler {
+    INSTANCE;
 
-    private static TimerHandler timerHandler = new TimerHandler();
-    private static AtomicBoolean isCreated = new AtomicBoolean(false);
+    public static TimerHandler getInstance() {
+        return INSTANCE;
+    }
+
     private HashSet<Integer> taskIdSet = new HashSet<>();
-
-    private TimerHandler() {
-    }
-
-    public static void createTimerHandler() {
-        if (isCreated.get()) {
-            throw new RuntimeException("timer is created , you can call getTimerHandler");
-        }
-        isCreated.set(true);
-    }
-
-    public static TimerHandler getTimerHandler() {
-        return timerHandler;
-    }
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -96,7 +84,7 @@ public class TimerHandler {
             return -1;
         }
         Message message = Message.obtain();
-        message.what = obtrainID();
+        message.what = obtainID();
         message.obj = runnable;
         Bundle bundle = new Bundle();
         bundle.putLong("period", period);
@@ -111,21 +99,13 @@ public class TimerHandler {
             return -1;
         }
         Message message = Message.obtain();
-        message.what = obtrainID();
+        message.what = obtainID();
         message.obj = runnable;
         Bundle bundle = new Bundle();
         bundle.putLong("period", period);
         message.setData(bundle);
         handler.sendMessageDelayed(message, delay);
         return message.what;
-    }
-
-    private synchronized int obtrainID() {
-        int id = new Random().nextInt(Integer.MAX_VALUE);
-        if (!taskIdSet.add(id)) {
-            obtrainID();
-        }
-        return id;
     }
 
     /**
@@ -143,7 +123,7 @@ public class TimerHandler {
             return -1;
         }
         Message message = Message.obtain();
-        message.what = obtrainID();
+        message.what = obtainID();
         message.obj = instance;
         Bundle bundle = new Bundle();
         bundle.putLong("period", period);
@@ -151,6 +131,14 @@ public class TimerHandler {
         message.setData(bundle);
         handler.sendMessageDelayed(message, delay);
         return message.what;
+    }
+
+    private synchronized int obtainID() {
+        int id = new Random().nextInt(Integer.MAX_VALUE);
+        if (!taskIdSet.add(id)) {
+            return obtainID();
+        }
+        return id;
     }
 
     private void exeTask(Object object, String methodName) {

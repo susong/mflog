@@ -1,152 +1,19 @@
 package com.mf.log;
 
 import android.content.Context;
-import android.os.Environment;
 
-import com.elvishew.xlog.LogConfiguration;
 import com.elvishew.xlog.XLog;
-import com.elvishew.xlog.flattener.ClassicFlattener;
-import com.elvishew.xlog.printer.AndroidPrinter;
-import com.elvishew.xlog.printer.Printer;
-import com.elvishew.xlog.printer.file.FilePrinter;
-import com.elvishew.xlog.printer.file.backup.FileSizeBackupStrategy2;
-import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy;
-import com.tencent.mars.xlog.Log;
-import com.tencent.mars.xlog.Xlog;
-
-import java.io.File;
-import java.io.FilenameFilter;
 
 
 public class LogUtils {
 
-    private static String marLogDirPath;
-    private static String marLogPath;
-    private static Context context;
-
-    static {
-        System.loadLibrary("c++_shared");
-        System.loadLibrary("marsxlog");
+    public static void init(Context context, String logBasePath, String logDir) {
+        init(context, logBasePath, logDir, false, false, false);
     }
 
-    public static void init(Context context, String logPath) {
-        init(context, logPath, false, false, false);
+    public static void init(Context context, String logBasePath, String logDir, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
+        LogManager.getInstance().init(context, logBasePath, logDir, enableThreadInfo, enableBorder, enableStackTrace);
     }
-
-    public static void init(Context context, String logPath, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
-        LogUtils.context = context;
-        if (logPath == null || logPath.length() == 0) {
-            logPath = "/mf/log/tmp/";
-        }
-        LogConfiguration.Builder builder = new LogConfiguration.Builder();
-        if (enableThreadInfo) {
-            builder.enableThreadInfo();
-        } else {
-            builder.disableThreadInfo();
-        }
-        if (enableBorder) {
-            builder.enableBorder();
-        } else {
-            builder.disableBorder();
-        }
-        if (enableStackTrace) {
-            builder.enableStackTrace(3);
-        } else {
-            builder.disableStackTrace();
-        }
-        LogConfiguration config = builder.build();
-        Printer androidPrinter = new AndroidPrinter(true);
-        Printer filePrinter = new FilePrinter
-                .Builder(getSdPath() + File.separator + logPath)
-                .fileNameGenerator(new LevelAndDateFileNameGenerator())
-                .backupStrategy(new FileSizeBackupStrategy2(10 * 1024 * 1024/*10MB*/, 100))
-                .cleanStrategy(new FileLastModifiedCleanStrategy(5 * 24 * 60 * 60 * 1000/*5天*/))
-                .flattener(new ClassicFlattener())
-                .build();
-
-        Printer marsXLogPrinter = new Printer() {
-            @Override
-            public void println(int logLevel, String tag, String msg) {
-
-                final int size = 1024;
-                if (msg.length() <= size) {
-                    Log.i(tag, Constant.ENTER + msg + Constant.ENTER + Constant.ENTER);
-                    return;
-                }
-
-                int msgLength = msg.length();
-                int start = 0;
-                int end = start + size;
-                Log.i(tag, Constant.ENTER);
-                while (start < msgLength) {
-                    Log.i(tag, msg.substring(start, end));
-                    start = end;
-                    end = Math.min(start + size, msgLength);
-                }
-                Log.i(tag, Constant.ENTER + Constant.ENTER);
-            }
-        };
-
-        initMarsXLog("/mf/log/mars/");
-        XLog.init(config, androidPrinter, marsXLogPrinter, filePrinter);
-    }
-
-    public static void backup() {
-        Log.appenderFlush();
-        Log.appenderClose();
-        if (marLogDirPath != null && marLogDirPath.length() > 0) {
-            File marLogDir = new File(marLogDirPath);
-            File[] files = marLogDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".xlog");
-                }
-            });
-            if (files != null) {
-                for (File file : files) {
-                    file.renameTo(new File(file.getAbsolutePath() + ".bak"));
-                }
-            }
-        }
-        initMarsXLog(marLogPath);
-    }
-
-    /**
-     * 获取sd卡路径
-     */
-    private static String getSdPath() {
-        File sdDir;
-        boolean sdCardExist = Environment.getExternalStorageState()
-                .equals(android.os.Environment.MEDIA_MOUNTED); //判断sd卡是否存在
-        if (sdCardExist) {
-            sdDir = Environment.getExternalStorageDirectory();//获取跟目录
-        } else {
-            sdDir = Environment.getDataDirectory();
-        }
-        return sdDir.getAbsolutePath();
-    }
-
-    /**
-     * 初始化mars
-     */
-    private static void initMarsXLog(String logPath) {
-        marLogPath = logPath;
-        marLogDirPath = getSdPath() + File.separator + logPath;
-        File file = new File(marLogDirPath);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        // this is necessary, or may crash for SIGBUS
-        final String marCachePath = context.getFilesDir() + "/xlog";
-
-        Log.setLogImp(new Xlog());
-        Log.appenderOpen(Xlog.LEVEL_DEBUG,
-                Xlog.AppednerModeAsync, marCachePath, marLogDirPath,
-                "log", 0);
-        Log.setConsoleLogOpen(false);
-    }
-
-    // ============ 日志输出方法 ============
 
     public static void v(String tag, String msg) {
         XLog.tag(tag).v(msg);

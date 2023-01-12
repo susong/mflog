@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.mf.log.LogManager
 import com.mf.log.LogUtils
-import com.mf.log.xlog.BackupUtil.backup
 import com.permissionx.guolindev.PermissionX
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<Button>(R.id.btn_log_test_start).setOnClickListener(this)
         findViewById<Button>(R.id.btn_log_test_end).setOnClickListener(this)
         findViewById<Button>(R.id.btn_backup).setOnClickListener(this)
-        LogUtils.init(this, "/mf/log/android/", true, false, true)
+        LogUtils.init(this, "mf/log", "main", true, false, true)
         requestPermissions()
     }
 
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 isStart = false
             }
             R.id.btn_backup -> {
-                LogUtils.backup()
+                LogManager.getInstance().backupMarsXLog()
             }
             else -> LogUtils.d("this is debug msg, 这是调试日志")
         }
