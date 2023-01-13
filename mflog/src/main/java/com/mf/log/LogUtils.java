@@ -3,9 +3,13 @@ package com.mf.log;
 import android.content.Context;
 
 import com.elvishew.xlog.XLog;
+import com.mf.log.upload.IUploadFile;
+import com.mf.log.upload.UploadFileToMec;
 
 
 public class LogUtils {
+
+    private static IUploadFile iUploadFile = new UploadFileToMec();
 
     public static void init(Context context, String logBasePath, String logDir) {
         init(context, logBasePath, logDir, false, false, false);
@@ -13,6 +17,9 @@ public class LogUtils {
 
     public static void init(Context context, String logBasePath, String logDir, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
         LogManager.getInstance().init(context, logBasePath, logDir, enableThreadInfo, enableBorder, enableStackTrace);
+        LogManager.getInstance().setLogBackupListener((filePath, filename) -> {
+            iUploadFile.uploadFile(filePath, filename, IUploadFile.FileType.IMAGE);
+        });
     }
 
     public static void v(String tag, String msg) {

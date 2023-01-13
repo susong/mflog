@@ -33,7 +33,7 @@ public enum LogManager {
     }
 
     // 日志检测轮询时间
-    private final int INTERVAL = 5 * 60 * 1000;
+    private final int INTERVAL = 10 * 60 * 1000;
     // 日志总大小
     private static final long totalLogMaxSize = 500 * 1024 * 1024;/*500MB*/
     // 单个日志大小
@@ -49,6 +49,11 @@ public enum LogManager {
     private int timerTaskId = -1;
     // 是否已初始化
     private volatile boolean isInit = false;
+    private LogBackupListener logBackupListener;
+
+    public void setLogBackupListener(LogBackupListener logBackupListener) {
+        this.logBackupListener = logBackupListener;
+    }
 
     public void init(Context context, String logBasePath, String logDir) {
         init(context, logBasePath, logDir, false, false, false);
@@ -85,7 +90,6 @@ public enum LogManager {
      * 定时器自动备份xlog日志，由定时器通过反射调用
      */
     private void backupMarsXLogByTimer() {
-        TimerHandler.getInstance().cancel(timerTaskId);
         backupMarsXLog();
     }
 
@@ -100,7 +104,11 @@ public enum LogManager {
             });
             if (files != null) {
                 for (File file : files) {
-                    file.renameTo(new File(file.getAbsolutePath() + ".bak"));
+                    File backupFile = new File(file.getAbsolutePath() + ".bak");
+                    file.renameTo(backupFile);
+                    if (logBackupListener != null) {
+                        logBackupListener.onFileBackup(backupFile.getPath(), file.getName());
+                    }
                 }
             }
         }
@@ -173,7 +181,7 @@ public enum LogManager {
                 com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + Constant.ENTER);
             }
         };
-        XLog.init(config, androidPrinter, marsXLogPrinter, filePrinter);
+        XLog.init(config, marsXLogPrinter, filePrinter);
     }
 
     /**
