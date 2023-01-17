@@ -76,6 +76,15 @@ public enum LogManager {
         timerTaskId = TimerHandler.getInstance().schedule(this, "backupMarsXLogByTimer", INTERVAL, INTERVAL);
     }
 
+    public void unInit() {
+        if (timerTaskId != -1) {
+            TimerHandler.getInstance().cancel(timerTaskId);
+        }
+        com.tencent.mars.xlog.Log.appenderFlush();
+        com.tencent.mars.xlog.Log.appenderClose();
+        isInit = false;
+    }
+
     /**
      * 备份xlog日志
      */

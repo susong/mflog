@@ -22,6 +22,11 @@ public class LogUtils {
         });
     }
 
+    public static void unInit() {
+        LogManager.getInstance().setLogBackupListener(null);
+        LogManager.getInstance().unInit();
+    }
+
     public static void v(String tag, String msg) {
         XLog.tag(tag).v(msg);
     }
