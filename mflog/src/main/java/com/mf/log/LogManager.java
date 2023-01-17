@@ -190,7 +190,7 @@ public enum LogManager {
                 com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + Constant.ENTER);
             }
         };
-        XLog.init(config, marsXLogPrinter, filePrinter);
+        XLog.init(config, androidPrinter, marsXLogPrinter, filePrinter);
     }
 
     /**
