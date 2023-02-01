@@ -5,21 +5,37 @@ import android.content.Context;
 import com.elvishew.xlog.XLog;
 import com.mf.log.upload.IUploadFile;
 import com.mf.log.upload.UploadFileToMec;
+import com.mf.log.upload.UploadFileToQiniu;
 
 
 public class LogUtils {
 
-    private static IUploadFile iUploadFile = new UploadFileToMec();
+    private static IUploadFile uploadFile;
 
-    public static void init(Context context, String logBasePath, String logDir) {
-        init(context, logBasePath, logDir, false, false, false);
+    public static void init(Context context) {
+        init(context, new LogConfig.Builder().build());
     }
 
-    public static void init(Context context, String logBasePath, String logDir, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
-        LogManager.getInstance().init(context, logBasePath, logDir, enableThreadInfo, enableBorder, enableStackTrace);
-        LogManager.getInstance().setLogBackupListener((filePath, filename) -> {
-            iUploadFile.uploadFile(filePath, filename, IUploadFile.FileType.IMAGE);
-        });
+    public static void init(Context context, LogConfig config) {
+        if (config == null) {
+            config = new LogConfig.Builder().build();
+        }
+        LogManager.getInstance().init(context, config);
+        if (config.isUploadLogFile) {
+            if (LogConfig.UploadConfig.Target.MEC == config.uploadConfig.target) {
+                uploadFile = new UploadFileToMec();
+            } else if (LogConfig.UploadConfig.Target.CLOUD == config.uploadConfig.target) {
+                uploadFile = new UploadFileToQiniu();
+            }
+            if (uploadFile != null) {
+                uploadFile.setUrl(config.uploadConfig.url);
+                uploadFile.setProject(config.uploadConfig.project);
+                uploadFile.setDeviceId(config.uploadConfig.deviceId);
+                LogManager.getInstance().setLogBackupListener((filePath, filename) -> {
+                    uploadFile.uploadFile(filePath, filename, IUploadFile.FileType.IMAGE);
+                });
+            }
+        }
     }
 
     public static void unInit() {

@@ -1,4 +1,4 @@
-package com.mf.log;
+package com.mf.log.xlog;
 
 import com.elvishew.xlog.LogLevel;
 import com.elvishew.xlog.printer.file.naming.FileNameGenerator;

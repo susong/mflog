@@ -12,10 +12,13 @@ import com.elvishew.xlog.printer.file.FilePrinter;
 import com.elvishew.xlog.printer.file.backup.FileSizeBackupStrategy2;
 import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy;
 import com.mf.log.utils.TimerHandler;
+import com.mf.log.xlog.LevelAndDateFileNameGenerator;
 import com.tencent.mars.xlog.Xlog;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 public enum LogManager {
     /**
@@ -32,79 +35,196 @@ public enum LogManager {
         System.loadLibrary("marsxlog");
     }
 
-    // 日志检测轮询时间
-    private final int INTERVAL = 10 * 60 * 1000;
-    // 日志总大小
-    private static final long totalLogMaxSize = 500 * 1024 * 1024;/*500MB*/
-    // 单个日志大小
-    private static final long singleLogMaxSize = 10 * 1024 * 1024;/*10MB*/
-    // 最大备份索引
-    private static final int maxBackupIndex = 100;
-    // 日志保留时间
-    private static final long logRetentionTime = 5 * 24 * 60 * 60 * 1000;/*5天*/
-
     private Context context;
-    private String marLogDirPath;
-    private String marCachePath;
-    private int timerTaskId = -1;
+    private LogConfig config;
     // 是否已初始化
     private volatile boolean isInit = false;
+    private int timerTaskId = -1;
     private LogBackupListener logBackupListener;
 
     public void setLogBackupListener(LogBackupListener logBackupListener) {
         this.logBackupListener = logBackupListener;
     }
 
-    public void init(Context context, String logBasePath, String logDir) {
-        init(context, logBasePath, logDir, false, false, false);
-    }
-
-    public void init(Context context, String logBasePath, String logDir, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
+    public void init(Context context, LogConfig config) {
         if (isInit) {
             return;
         }
         isInit = true;
         this.context = context;
+        this.config = config;
 
-        initMarsXLog(logBasePath, logDir);
-        moveMarsXLog();
-        initXLog(logBasePath, logDir, enableThreadInfo, enableBorder, enableStackTrace);
-
-        if (timerTaskId != -1) {
-            TimerHandler.getInstance().cancel(timerTaskId);
+        if (config.isLogToFileByMars) {
+            initMarsXLogConfig(config);
+            moveMarsXLog();
+            initMarsXLog();
         }
-        timerTaskId = TimerHandler.getInstance().schedule(this, "backupMarsXLogByTimer", INTERVAL, INTERVAL);
+        initXLog(config);
+        initTimer(config);
     }
 
     public void unInit() {
         if (timerTaskId != -1) {
             TimerHandler.getInstance().cancel(timerTaskId);
         }
-        com.tencent.mars.xlog.Log.appenderFlush();
-        com.tencent.mars.xlog.Log.appenderClose();
+        if (config.isLogToFileByMars) {
+            closeMarsXLog();
+        }
         isInit = false;
     }
 
     /**
-     * 备份xlog日志
+     * 备份日志文件
      */
-    public void backupMarsXLog() {
-        com.tencent.mars.xlog.Log.appenderFlush();
-        com.tencent.mars.xlog.Log.appenderClose();
-        moveMarsXLog();
-        initMarsXLog();
+    public void backupLog() {
+        if (config.isLogToFileByMars) {
+            closeMarsXLog();
+            moveMarsXLog();
+            initMarsXLog();
+        }
     }
 
     /**
-     * 定时器自动备份xlog日志，由定时器通过反射调用
+     * 初始化定时器
      */
-    private void backupMarsXLogByTimer() {
-        backupMarsXLog();
+    private void initTimer(LogConfig config) {
+        if (timerTaskId != -1) {
+            TimerHandler.getInstance().cancel(timerTaskId);
+        }
+        timerTaskId = TimerHandler.getInstance()
+                .schedule(this,
+                        "backupMarsXLogByTimer",
+                        config.backupConfig.logCheckInterval,
+                        config.backupConfig.logCheckInterval);
     }
 
+    /**
+     * 初始化xlog
+     */
+    private void initXLog(LogConfig config) {
+        LogConfiguration.Builder builder = new LogConfiguration.Builder();
+        if (config.isEnableThreadInfo) {
+            builder.enableThreadInfo();
+        } else {
+            builder.disableThreadInfo();
+        }
+        if (config.isEnableBorder) {
+            builder.enableBorder();
+        } else {
+            builder.disableBorder();
+        }
+        if (config.isEnableStackTrace) {
+            builder.enableStackTrace(3);
+        } else {
+            builder.disableStackTrace();
+        }
+        LogConfiguration logConfiguration = builder.build();
+
+        List<Printer> printers = new ArrayList<>();
+
+        if (config.isLogToConsole) {
+            Printer androidPrinter = new AndroidPrinter(true);
+            printers.add(androidPrinter);
+        }
+
+        if (config.isLogToFileByXLog) {
+            Printer filePrinter = new FilePrinter
+                    .Builder(getSdPath() + File.separator + config.logBasePath + File.separator + config.logDir)
+                    .fileNameGenerator(new LevelAndDateFileNameGenerator())
+                    .backupStrategy(new FileSizeBackupStrategy2(config.backupConfig.singleLogMaxSize, config.backupConfig.maxBackupIndex))
+                    .cleanStrategy(new FileLastModifiedCleanStrategy(config.backupConfig.logRetentionTime))
+                    .flattener(new ClassicFlattener())
+                    .build();
+            printers.add(filePrinter);
+        }
+
+        if (config.isLogToFileByMars) {
+            Printer marsXLogPrinter = new Printer() {
+                @Override
+                public void println(int logLevel, String tag, String msg) {
+
+                    final int size = 1024;
+                    if (msg.length() <= size) {
+                        com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + msg + Constant.ENTER + Constant.ENTER);
+                        return;
+                    }
+
+                    int msgLength = msg.length();
+                    int start = 0;
+                    int end = start + size;
+                    com.tencent.mars.xlog.Log.i(tag, Constant.ENTER);
+                    while (start < msgLength) {
+                        com.tencent.mars.xlog.Log.i(tag, msg.substring(start, end));
+                        start = end;
+                        end = Math.min(start + size, msgLength);
+                    }
+                    com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + Constant.ENTER);
+                }
+            };
+            printers.add(marsXLogPrinter);
+        }
+
+        XLog.init(logConfiguration, printers.toArray(new Printer[0]));
+    }
+
+    /**
+     * mars保存日志路径
+     */
+    private String marsLogDirPath;
+    /**
+     * mars缓存日志路径
+     */
+    private String marsCachePath;
+
+    /**
+     * 定时器自动备份日志，由定时器通过反射调用
+     */
+    private void backupMarsXLogByTimer() {
+        backupLog();
+    }
+
+    /**
+     * 初始化mars配置
+     */
+    private void initMarsXLogConfig(LogConfig config) {
+        marsLogDirPath = getSdPath() + File.separator + config.logBasePath + File.separator + config.logDir + "_mars";
+        File file = new File(marsLogDirPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        // this is necessary, or may crash for SIGBUS
+        marsCachePath = context.getFilesDir() + File.separator + "xlog";
+        file = new File(marsCachePath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    /**
+     * 初始化mars
+     */
+    private void initMarsXLog() {
+        com.tencent.mars.xlog.Log.setLogImp(new Xlog());
+        com.tencent.mars.xlog.Log.setConsoleLogOpen(false);
+        com.tencent.mars.xlog.Log.appenderOpen(Xlog.LEVEL_DEBUG,
+                Xlog.AppednerModeAsync, marsCachePath, marsLogDirPath,
+                "log", 0);
+    }
+
+    /**
+     * 关闭mars
+     */
+    private void closeMarsXLog() {
+        com.tencent.mars.xlog.Log.appenderFlush();
+        com.tencent.mars.xlog.Log.appenderClose();
+    }
+
+    /**
+     * 备份mars输出的日志文件
+     */
     private void moveMarsXLog() {
-        if (marLogDirPath != null && marLogDirPath.length() > 0) {
-            File marLogDir = new File(marLogDirPath);
+        if (marsLogDirPath != null && marsLogDirPath.length() > 0) {
+            File marLogDir = new File(marsLogDirPath);
             File[] files = marLogDir.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -136,89 +256,5 @@ public enum LogManager {
             sdDir = Environment.getDataDirectory();
         }
         return sdDir.getAbsolutePath();
-    }
-
-    /**
-     * 初始化xlog
-     */
-    private void initXLog(String logBasePath, String logDir, boolean enableThreadInfo, boolean enableBorder, boolean enableStackTrace) {
-        LogConfiguration.Builder builder = new LogConfiguration.Builder();
-        if (enableThreadInfo) {
-            builder.enableThreadInfo();
-        } else {
-            builder.disableThreadInfo();
-        }
-        if (enableBorder) {
-            builder.enableBorder();
-        } else {
-            builder.disableBorder();
-        }
-        if (enableStackTrace) {
-            builder.enableStackTrace(3);
-        } else {
-            builder.disableStackTrace();
-        }
-        LogConfiguration config = builder.build();
-        Printer androidPrinter = new AndroidPrinter(true);
-        Printer filePrinter = new FilePrinter
-                .Builder(getSdPath() + File.separator + logBasePath + File.separator + logDir)
-                .fileNameGenerator(new LevelAndDateFileNameGenerator())
-                .backupStrategy(new FileSizeBackupStrategy2(singleLogMaxSize, maxBackupIndex))
-                .cleanStrategy(new FileLastModifiedCleanStrategy(logRetentionTime))
-                .flattener(new ClassicFlattener())
-                .build();
-
-        Printer marsXLogPrinter = new Printer() {
-            @Override
-            public void println(int logLevel, String tag, String msg) {
-
-                final int size = 1024;
-                if (msg.length() <= size) {
-                    com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + msg + Constant.ENTER + Constant.ENTER);
-                    return;
-                }
-
-                int msgLength = msg.length();
-                int start = 0;
-                int end = start + size;
-                com.tencent.mars.xlog.Log.i(tag, Constant.ENTER);
-                while (start < msgLength) {
-                    com.tencent.mars.xlog.Log.i(tag, msg.substring(start, end));
-                    start = end;
-                    end = Math.min(start + size, msgLength);
-                }
-                com.tencent.mars.xlog.Log.i(tag, Constant.ENTER + Constant.ENTER);
-            }
-        };
-        XLog.init(config, androidPrinter, marsXLogPrinter, filePrinter);
-    }
-
-    /**
-     * 初始化mars
-     */
-    private void initMarsXLog(String logBasePath, String logDir) {
-        marLogDirPath = getSdPath() + File.separator + logBasePath + File.separator + logDir + "_mars";
-        File file = new File(marLogDirPath);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        // this is necessary, or may crash for SIGBUS
-        marCachePath = context.getFilesDir() + File.separator + "xlog";
-        file = new File(marCachePath);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        initMarsXLog();
-    }
-
-    /**
-     * 初始化mars
-     */
-    private void initMarsXLog() {
-        com.tencent.mars.xlog.Log.setLogImp(new Xlog());
-        com.tencent.mars.xlog.Log.setConsoleLogOpen(false);
-        com.tencent.mars.xlog.Log.appenderOpen(Xlog.LEVEL_DEBUG,
-                Xlog.AppednerModeAsync, marCachePath, marLogDirPath,
-                "log", 0);
     }
 }
