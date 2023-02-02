@@ -12,6 +12,10 @@ public class LogUtils {
 
     private static IUploadFile uploadFile;
 
+    public static String getSdPath() {
+        return LogManager.getInstance().getSdPath();
+    }
+
     public static void init(Context context) {
         init(context, new LogConfig.Builder().build());
     }

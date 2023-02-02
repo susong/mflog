@@ -129,7 +129,7 @@ public enum LogManager {
 
         if (config.isLogToFileByXLog) {
             Printer filePrinter = new FilePrinter
-                    .Builder(getSdPath() + File.separator + config.logBasePath + File.separator + config.logDir)
+                    .Builder(config.logBasePath + File.separator + config.logDir)
                     .fileNameGenerator(new LevelAndDateFileNameGenerator())
                     .backupStrategy(new FileSizeBackupStrategy2(config.backupConfig.singleLogMaxSize, config.backupConfig.maxBackupIndex))
                     .cleanStrategy(new FileLastModifiedCleanStrategy(config.backupConfig.logRetentionTime))
@@ -187,7 +187,7 @@ public enum LogManager {
      * 初始化mars配置
      */
     private void initMarsXLogConfig(LogConfig config) {
-        marsLogDirPath = getSdPath() + File.separator + config.logBasePath + File.separator + config.logDir + "_mars";
+        marsLogDirPath = config.logBasePath + File.separator + config.logDir + "_mars";
         File file = new File(marsLogDirPath);
         if (!file.exists()) {
             file.mkdirs();
@@ -246,7 +246,7 @@ public enum LogManager {
     /**
      * 获取sd卡路径
      */
-    private String getSdPath() {
+    public String getSdPath() {
         File sdDir;
         boolean sdCardExist = Environment.getExternalStorageState()
                 .equals(android.os.Environment.MEDIA_MOUNTED); //判断sd卡是否存在

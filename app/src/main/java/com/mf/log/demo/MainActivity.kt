@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<Button>(R.id.btn_backup).setOnClickListener(this)
         LogUtils.init(
             this, LogConfig.Builder()
-                .logBasePath("mf/log")
+                .logBasePath(LogUtils.getSdPath() + "/mflog")
                 .logDir("main")
                 .isEnableThreadInfo(true)
                 .isEnableStackTrace(true)
