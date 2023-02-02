@@ -39,7 +39,9 @@ public enum LogManager {
     private LogConfig config;
     // 是否已初始化
     private volatile boolean isInit = false;
-    private int timerTaskId = -1;
+    private int backupTimerTaskId = -1;
+    private List<CacheFileManager> logFileManagers;
+    private List<Integer> logFileManagerTimerTaskIds;
     private LogBackupListener logBackupListener;
 
     public void setLogBackupListener(LogBackupListener logBackupListener) {
@@ -60,12 +62,21 @@ public enum LogManager {
             initMarsXLog();
         }
         initXLog(config);
-        initTimer(config);
+        initBackupTimer(config);
+        initCleanManager(config);
     }
 
     public void unInit() {
-        if (timerTaskId != -1) {
-            TimerHandler.getInstance().cancel(timerTaskId);
+        if (backupTimerTaskId != -1) {
+            TimerHandler.getInstance().cancel(backupTimerTaskId);
+        }
+        if (logFileManagerTimerTaskIds != null && logFileManagerTimerTaskIds.size() > 0) {
+            for (Integer taskId : logFileManagerTimerTaskIds) {
+                TimerHandler.getInstance().cancel(taskId);
+            }
+        }
+        if (logFileManagers != null) {
+            logFileManagers.clear();
         }
         if (config.isLogToFileByMars) {
             closeMarsXLog();
@@ -85,17 +96,44 @@ public enum LogManager {
     }
 
     /**
-     * 初始化定时器
+     * 初始化日志备份定时器
      */
-    private void initTimer(LogConfig config) {
-        if (timerTaskId != -1) {
-            TimerHandler.getInstance().cancel(timerTaskId);
+    private void initBackupTimer(LogConfig config) {
+        if (backupTimerTaskId != -1) {
+            TimerHandler.getInstance().cancel(backupTimerTaskId);
         }
-        timerTaskId = TimerHandler.getInstance()
+        backupTimerTaskId = TimerHandler.getInstance()
                 .schedule(this,
                         "backupMarsXLogByTimer",
                         config.backupConfig.logCheckInterval,
                         config.backupConfig.logCheckInterval);
+    }
+
+    /**
+     * 初始化日志文件定时清理器
+     */
+    private void initCleanManager(LogConfig config) {
+        if (config.cleanConfigs != null && config.cleanConfigs.size() > 0) {
+            logFileManagers = new ArrayList<>();
+            logFileManagerTimerTaskIds = new ArrayList<>();
+            for (LogConfig.CleanConfig cleanConfig : config.cleanConfigs) {
+                File cacheDir = new File(cleanConfig.logDir);
+                if (!cacheDir.exists()) {
+                    cacheDir.mkdirs();
+                }
+                CacheFileManager cacheFileManager = new CacheFileManager(
+                        cacheDir,
+                        cleanConfig.sizeLimit,
+                        cleanConfig.countLimit);
+                logFileManagers.add(cacheFileManager);
+
+                logFileManagerTimerTaskIds.add(TimerHandler.getInstance()
+                        .schedule(cacheFileManager,
+                                "checkFile",
+                                cleanConfig.checkInterval,
+                                cleanConfig.checkInterval));
+            }
+        }
     }
 
     /**

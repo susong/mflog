@@ -1,5 +1,8 @@
 package com.mf.log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 日志配置
  */
@@ -57,6 +60,7 @@ public class LogConfig {
 
     public final BackupConfig backupConfig;
     public final UploadConfig uploadConfig;
+    public final List<CleanConfig> cleanConfigs;
 
     /*package*/ LogConfig(final Builder builder) {
         this.tag = builder.tag;
@@ -73,11 +77,12 @@ public class LogConfig {
 
         this.backupConfig = builder.backupConfig;
         this.uploadConfig = builder.uploadConfig;
+        this.cleanConfigs = builder.cleanConfigs;
     }
 
     public static class Builder {
         private String tag = "mflog";
-        private String logBasePath = "mf/log";
+        private String logBasePath = LogUtils.getSdPath() + "/mflog";
         private String logDir = "main";
         private boolean isEnableThreadInfo = false;
         private boolean isEnableBorder = false;
@@ -88,6 +93,7 @@ public class LogConfig {
         private boolean isUploadLogFile = false;
         private BackupConfig backupConfig;
         private UploadConfig uploadConfig;
+        private List<CleanConfig> cleanConfigs;
 
         public Builder() {
 
@@ -107,6 +113,9 @@ public class LogConfig {
 
             backupConfig = logConfig.backupConfig;
             uploadConfig = logConfig.uploadConfig;
+            if (logConfig.cleanConfigs != null) {
+                cleanConfigs = new ArrayList<>(logConfig.cleanConfigs);
+            }
         }
 
         public Builder tag(String tag) {
@@ -169,6 +178,14 @@ public class LogConfig {
             return this;
         }
 
+        public Builder addCleanConfig(CleanConfig cleanConfig) {
+            if (cleanConfigs == null) {
+                cleanConfigs = new ArrayList<>();
+            }
+            cleanConfigs.add(cleanConfig);
+            return this;
+        }
+
         public LogConfig build() {
             initEmptyFieldsWithDefaultValues();
             return new LogConfig(this);
@@ -180,6 +197,9 @@ public class LogConfig {
             }
             if (uploadConfig == null) {
                 uploadConfig = new UploadConfig.Builder().build();
+            }
+            if (cleanConfigs == null) {
+                cleanConfigs = new ArrayList<>();
             }
         }
     }
@@ -274,7 +294,6 @@ public class LogConfig {
         public enum Target {
             MEC,
             CLOUD,
-            ;
         }
 
         /**
@@ -343,4 +362,70 @@ public class LogConfig {
         }
     }
 
+    public static class CleanConfig {
+        /**
+         * 日志目录
+         */
+        public final String logDir;
+        /**
+         * 大小限制
+         */
+        public final long sizeLimit;
+        /**
+         * 数量限制
+         */
+        public final int countLimit;
+        /**
+         * 检测轮询时间
+         */
+        public final int checkInterval;
+
+        /*package*/ CleanConfig(Builder builder) {
+            this.logDir = builder.logDir;
+            this.sizeLimit = builder.sizeLimit;
+            this.countLimit = builder.countLimit;
+            this.checkInterval = builder.checkInterval;
+        }
+
+        public static class Builder {
+            private String logDir = "";
+            private long sizeLimit = 500 * 1024 * 1024;/*500MB*/
+            private int countLimit = 100;
+            private int checkInterval = 10 * 60 * 1000;/*10分钟*/
+
+            public Builder() {
+            }
+
+            public Builder(CleanConfig cleanConfig) {
+                this.logDir = cleanConfig.logDir;
+                this.sizeLimit = cleanConfig.sizeLimit;
+                this.countLimit = cleanConfig.countLimit;
+                this.checkInterval = cleanConfig.checkInterval;
+            }
+
+            public Builder logDir(String logDir) {
+                this.logDir = logDir;
+                return this;
+            }
+
+            public Builder sizeLimit(long sizeLimit) {
+                this.sizeLimit = sizeLimit;
+                return this;
+            }
+
+            public Builder countLimit(int countLimit) {
+                this.countLimit = countLimit;
+                return this;
+            }
+
+            public Builder checkInterval(int checkInterval) {
+                this.checkInterval = checkInterval;
+                return this;
+            }
+
+            public CleanConfig build() {
+                return new CleanConfig(this);
+            }
+        }
+    }
 }
