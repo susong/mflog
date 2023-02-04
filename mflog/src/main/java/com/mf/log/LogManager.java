@@ -236,7 +236,7 @@ public enum LogManager {
             file.mkdirs();
         }
         // this is necessary, or may crash for SIGBUS
-        marsCachePath = context.getFilesDir() + File.separator + "xlog";
+        marsCachePath = context.getFilesDir() + File.separator + config.logDir.replaceAll("/", "_") + "_xlog";
         file = new File(marsCachePath);
         if (!file.exists()) {
             file.mkdirs();
