@@ -16,8 +16,8 @@ import okhttp3.OkHttpClient;
 public abstract class UploadFileBase implements IUploadFile {
 
     protected String url = "";
-    protected String project = "PARKING";
-    protected String deviceId = "";
+    protected String project = "parking";
+    protected String deviceId = "0";
     protected final OkHttpClient httpClient = new OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
             .connectTimeout(3, TimeUnit.SECONDS) // 连接超时

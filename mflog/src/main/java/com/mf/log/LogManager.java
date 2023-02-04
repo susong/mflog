@@ -58,6 +58,7 @@ public enum LogManager {
 
         if (config.isLogToFileByMars) {
             initMarsXLogConfig(config);
+            closeMarsXLog();
             moveMarsXLog();
             initMarsXLog();
         }
@@ -70,14 +71,7 @@ public enum LogManager {
         if (backupTimerTaskId != -1) {
             TimerHandler.getInstance().cancel(backupTimerTaskId);
         }
-        if (logFileManagerTimerTaskIds != null && logFileManagerTimerTaskIds.size() > 0) {
-            for (Integer taskId : logFileManagerTimerTaskIds) {
-                TimerHandler.getInstance().cancel(taskId);
-            }
-        }
-        if (logFileManagers != null) {
-            logFileManagers.clear();
-        }
+        unInitCleanManager();
         if (config.isLogToFileByMars) {
             closeMarsXLog();
         }
@@ -133,6 +127,17 @@ public enum LogManager {
                                 cleanConfig.checkInterval,
                                 cleanConfig.checkInterval));
             }
+        }
+    }
+
+    private void unInitCleanManager() {
+        if (logFileManagerTimerTaskIds != null && logFileManagerTimerTaskIds.size() > 0) {
+            for (Integer taskId : logFileManagerTimerTaskIds) {
+                TimerHandler.getInstance().cancel(taskId);
+            }
+        }
+        if (logFileManagers != null) {
+            logFileManagers.clear();
         }
     }
 

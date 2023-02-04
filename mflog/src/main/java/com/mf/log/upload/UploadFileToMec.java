@@ -19,8 +19,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class UploadFileToMec extends UploadFileBase {
-    protected String url = "http://192.168.100.99:8080/v1/private/terminal-api/terminal-log-upload/upload";
-    protected String deviceId = "123";
 
     @Override
     public void uploadFile(File file, String filename, FileType fileType) {
@@ -34,6 +32,7 @@ public class UploadFileToMec extends UploadFileBase {
                 .addFormDataPart("file", fileName, requestBody)
                 .addFormDataPart("fileName", fileName)
                 .addFormDataPart("deviceId", deviceId)
+                .addFormDataPart("project", project)
                 .build();
         Request request = new Request.Builder()
                 .url(url)

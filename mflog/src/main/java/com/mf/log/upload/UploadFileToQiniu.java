@@ -25,11 +25,7 @@ import okhttp3.ResponseBody;
 
 public class UploadFileToQiniu extends UploadFileBase {
 
-    protected String url = "https://parking.codfly.cn/management/v1/public/common-api/upload/token";
-    protected String project = "PARKING";
-    protected String deviceId = "123";
     private final UploadManager uploadManager = new UploadManager();
-
 
     @Override
     public void uploadFile(File file, String filename, FileType fileType) {
