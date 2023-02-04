@@ -99,7 +99,7 @@ public enum LogManager {
         backupTimerTaskId = TimerHandler.getInstance()
                 .schedule(this,
                         "backupMarsXLogByTimer",
-                        config.backupConfig.logCheckInterval,
+                        10000/*10秒*/,
                         config.backupConfig.logCheckInterval);
     }
 
