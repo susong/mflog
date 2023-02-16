@@ -44,6 +44,10 @@ public enum LogManager {
     private List<Integer> logFileManagerTimerTaskIds;
     private LogBackupListener logBackupListener;
 
+    public boolean isInit() {
+        return isInit;
+    }
+
     public void setLogBackupListener(LogBackupListener logBackupListener) {
         this.logBackupListener = logBackupListener;
     }
@@ -52,7 +56,6 @@ public enum LogManager {
         if (isInit) {
             return;
         }
-        isInit = true;
         this.context = context;
         this.config = config;
 
@@ -65,9 +68,11 @@ public enum LogManager {
         initXLog(config);
         initBackupTimer(config);
         initCleanManager(config);
+        isInit = true;
     }
 
     public void unInit() {
+        isInit = false;
         if (backupTimerTaskId != -1) {
             TimerHandler.getInstance().cancel(backupTimerTaskId);
         }
@@ -75,7 +80,6 @@ public enum LogManager {
         if (config.isLogToFileByMars) {
             closeMarsXLog();
         }
-        isInit = false;
     }
 
     /**

@@ -10,6 +10,11 @@ import com.mf.log.upload.UploadFileToQiniu;
 
 public class LogUtils {
 
+    static {
+        com.blankj.utilcode.util.LogUtils.Config config = com.blankj.utilcode.util.LogUtils.getConfig();
+        config.setStackOffset(1);
+    }
+
     private static IUploadFile uploadFile;
 
     public static String getSdPath() {
@@ -48,162 +53,322 @@ public class LogUtils {
     }
 
     public static void v(String tag, String msg) {
-        XLog.tag(tag).v(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).v(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.vTag(tag, msg);
+        }
     }
 
     public static void v(String tag, String msg, Throwable tr) {
-        XLog.tag(tag).v(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).v(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.vTag(tag, msg, tr);
+        }
     }
 
     public static void v(final Object... contents) {
-        XLog.v(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.v(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.v(contents);
+        }
     }
 
     public static void vTag(final String tag, final Object... contents) {
-        XLog.tag(tag).v(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).v(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.vTag(tag, contents);
+        }
     }
 
     public static void v(Object object) {
-        XLog.v(object);
+        if (LogManager.getInstance().isInit()) {
+            XLog.v(object);
+        } else {
+            com.blankj.utilcode.util.LogUtils.v(object);
+        }
     }
 
     public static void v(String format, Object... args) {
-        XLog.v(format, args);
+        if (LogManager.getInstance().isInit()) {
+            XLog.v(format, args);
+        } else {
+            com.blankj.utilcode.util.LogUtils.v(String.format(format, args));
+        }
     }
 
     public static void v(String msg) {
-        XLog.v(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.v(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.v(msg);
+        }
     }
 
     public static void v(String msg, Throwable tr) {
-        XLog.v(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.v(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.v(msg, tr);
+        }
     }
 
     public static void d(String tag, String msg) {
-        XLog.tag(tag).d(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).d(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.dTag(tag, msg);
+        }
     }
 
     public static void d(String tag, String msg, Throwable tr) {
-        XLog.tag(tag).d(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).d(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.dTag(tag, msg, tr);
+        }
     }
 
     public static void d(final Object... contents) {
-        XLog.d(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.d(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.d(contents);
+        }
     }
 
     public static void dTag(final String tag, final Object... contents) {
-        XLog.tag(tag).d(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).d(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.dTag(tag, contents);
+        }
     }
 
     public static void d(Object object) {
-        XLog.d(object);
+        if (LogManager.getInstance().isInit()) {
+            XLog.d(object);
+        } else {
+            com.blankj.utilcode.util.LogUtils.d(object);
+        }
     }
 
     public static void d(String format, Object... args) {
-        XLog.d(format, args);
+        if (LogManager.getInstance().isInit()) {
+            XLog.d(format, args);
+        } else {
+            com.blankj.utilcode.util.LogUtils.d(String.format(format, args));
+        }
     }
 
     public static void d(String msg) {
-        XLog.d(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.d(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.d(msg);
+        }
     }
 
     public static void d(String msg, Throwable tr) {
-        XLog.d(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.d(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.d(msg, tr);
+        }
     }
 
     public static void i(String tag, String msg) {
-        XLog.tag(tag).i(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).i(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.iTag(tag, msg);
+        }
     }
 
     public static void i(String tag, String msg, Throwable tr) {
-        XLog.tag(tag).i(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).i(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.iTag(tag, msg, tr);
+        }
     }
 
     public static void i(final Object... contents) {
-        XLog.i(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.i(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.i(contents);
+        }
     }
 
     public static void iTag(final String tag, final Object... contents) {
-        XLog.tag(tag).i(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).i(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.iTag(tag, contents);
+        }
     }
 
     public static void i(Object object) {
-        XLog.i(object);
+        if (LogManager.getInstance().isInit()) {
+            XLog.i(object);
+        } else {
+            com.blankj.utilcode.util.LogUtils.i(object);
+        }
     }
 
     public static void i(String format, Object... args) {
-        XLog.i(format, args);
+        if (LogManager.getInstance().isInit()) {
+            XLog.i(format, args);
+        } else {
+            com.blankj.utilcode.util.LogUtils.i(String.format(format, args));
+        }
     }
 
     public static void i(String msg) {
-        XLog.i(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.i(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.i(msg);
+        }
     }
 
     public static void i(String msg, Throwable tr) {
-        XLog.i(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.i(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.i(msg, tr);
+        }
     }
 
     public static void w(String tag, String msg) {
-        XLog.tag(tag).w(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).w(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.wTag(tag, msg);
+        }
     }
 
     public static void w(String tag, String msg, Throwable tr) {
-        XLog.tag(tag).w(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).w(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.wTag(tag, msg, tr);
+        }
     }
 
     public static void w(final Object... contents) {
-        XLog.w(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.w(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.w(contents);
+        }
     }
 
     public static void wTag(final String tag, final Object... contents) {
-        XLog.tag(tag).w(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).w(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.wTag(tag, contents);
+        }
     }
 
     public static void w(Object object) {
-        XLog.w(object);
+        if (LogManager.getInstance().isInit()) {
+            XLog.w(object);
+        } else {
+            com.blankj.utilcode.util.LogUtils.w(object);
+        }
     }
 
     public static void w(String format, Object... args) {
-        XLog.w(format, args);
+        if (LogManager.getInstance().isInit()) {
+            XLog.w(format, args);
+        } else {
+            com.blankj.utilcode.util.LogUtils.w(String.format(format, args));
+        }
     }
 
     public static void w(String msg) {
-        XLog.w(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.w(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.w(msg);
+        }
     }
 
     public static void w(String msg, Throwable tr) {
-        XLog.w(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.w(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.w(msg, tr);
+        }
     }
 
     public static void e(String tag, String msg) {
-        XLog.tag(tag).e(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).e(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.eTag(tag, msg);
+        }
     }
 
     public static void e(String tag, String msg, Throwable tr) {
-        XLog.tag(tag).e(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).e(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.eTag(tag, msg, tr);
+        }
     }
 
     public static void e(final Object... contents) {
-        XLog.e(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.e(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.e(contents);
+        }
     }
 
     public static void eTag(final String tag, final Object... contents) {
-        XLog.tag(tag).e(contents);
+        if (LogManager.getInstance().isInit()) {
+            XLog.tag(tag).e(contents);
+        } else {
+            com.blankj.utilcode.util.LogUtils.eTag(tag, contents);
+        }
     }
 
     public static void e(Object object) {
-        XLog.e(object);
+        if (LogManager.getInstance().isInit()) {
+            XLog.e(object);
+        } else {
+            com.blankj.utilcode.util.LogUtils.e(object);
+        }
     }
 
     public static void e(String format, Object... args) {
-        XLog.e(format, args);
+        if (LogManager.getInstance().isInit()) {
+            XLog.e(format, args);
+        } else {
+            com.blankj.utilcode.util.LogUtils.e(String.format(format, args));
+        }
     }
 
     public static void e(String msg) {
-        XLog.e(msg);
+        if (LogManager.getInstance().isInit()) {
+            XLog.e(msg);
+        } else {
+            com.blankj.utilcode.util.LogUtils.e(msg);
+        }
     }
 
     public static void e(String msg, Throwable tr) {
-        XLog.e(msg, tr);
+        if (LogManager.getInstance().isInit()) {
+            XLog.e(msg, tr);
+        } else {
+            com.blankj.utilcode.util.LogUtils.e(msg, tr);
+        }
     }
 }

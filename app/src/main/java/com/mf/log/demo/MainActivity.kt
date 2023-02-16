@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.mf.log.LogConfig
+import com.mf.log.LogConfig.UploadConfig
 import com.mf.log.LogManager
 import com.mf.log.LogUtils
 import com.permissionx.guolindev.PermissionX
@@ -185,14 +186,31 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<Button>(R.id.btn_log_test_start).setOnClickListener(this)
         findViewById<Button>(R.id.btn_log_test_end).setOnClickListener(this)
         findViewById<Button>(R.id.btn_backup).setOnClickListener(this)
+
+        LogUtils.v("this is verbose msg, 这是冗余日志")
+        LogUtils.d("this is debug msg, 这是调试日志")
+        LogUtils.i("this is info msg, 这是信息日志")
+        LogUtils.w("this is warn msg, 这是警告日志")
+        LogUtils.e("this is error msg, 这是错误日志", NullPointerException())
+
         LogUtils.init(
-            this, LogConfig.Builder()
+            this,
+            LogConfig.Builder()
                 .logBasePath(LogUtils.getSdPath() + "/mflog")
-                .logDir("main")
-                .isEnableThreadInfo(true)
+                .logDir("test")
                 .isEnableStackTrace(true)
+                .isEnableThreadInfo(true)
                 .isLogToFileByXLog(true)
                 .isLogToFileByMars(true)
+                .isUploadLogFile(true)
+                .uploadConfig(
+                    UploadConfig.Builder()
+                        .url("http://192.168.100.99:8080/v1/private/terminal-api/terminal-log-upload/upload")
+                        .deviceId("000")
+                        .project("test")
+                        .target(UploadConfig.Target.MEC)
+                        .build()
+                )
                 .addCleanConfig(
                     LogConfig.CleanConfig.Builder()
                         .countLimit(3)
